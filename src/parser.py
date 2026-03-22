@@ -1,4 +1,5 @@
 from textnode import *
+from htmlnode import *
 from enum import Enum
 
 import re
@@ -81,17 +82,21 @@ def markdown_to_blocks(md):
     return blocks
 
 class BlockType(Enum):
-    paragraph = "paragraph"
-    heading1 = "heading1"
-    heading2 = "heading2"
-    heading3 = "heading3"
-    heading4 = "heading4"
-    heading5 = "heading5"
-    heading6 = "heading6"
-    code = "code"
-    quote = "quote"
-    ulist = "unordered_list"
-    olist = "ordered_list"
+    paragraph = "p"
+    heading1 = ("h1",1)
+    heading2 = ("h2",2)
+    heading3 = ("h3",3)
+    heading4 = ("h4",4)
+    heading5 = ("h5",5)
+    heading6 = ("h6",6)
+    code = ("code")
+    quote = ("blockquote")
+    ulist = ("ul")
+    olist = ("ol")
+
+    def __init__(self,tag,level=0):
+        self.tag = tag
+        self.level = level
 
 def block_to_block_type(block):
     if len(block)<2:
@@ -119,3 +124,24 @@ def block_to_block_type(block):
         return BlockType.olist
     else:
         return BlockType.paragraph
+    
+def markdown_to_html_node(md):
+    blocks = markdown_to_blocks(md)
+    parent = ParentNode("div", [])
+    for block in blocks:
+        blocktype = block_to_block_type(block)
+        match blocktype:
+            case BlockType.heading1 | BlockType.heading2 | BlockType.heading3 | BlockType.heading4 | BlockType.heading5 | BlockType.heading6:
+                node = LeafNode(blocktype.tag, block[blocktype.level+1:].strip())
+            case BlockType.code:
+                node = ParentNode("pre", [LeafNode("code", block[3:-3].strip())])
+            case BlockType.quote:
+                node = ParentNode(blocktype.tag, [LeafNode(None, block.replace(">","").strip())])
+            case BlockType.ulist:
+                node = ParentNode("ul", [ParentNode("li", [LeafNode(None, item[2:].strip())]) for item in block.split("\n")])
+            case BlockType.olist:
+                node = ParentNode("ol", [ParentNode("li", [LeafNode(None, item[2:].strip())]) for item in block.split("\n")])
+            case _:
+                node = LeafNode("p", block.strip())
+        parent.children.append(node)
+    return parent
