@@ -3,7 +3,7 @@ from htmlnode import *
 from conversions import *
 import unittest
 
-class TestHTMLNode(unittest.TestCase):
+class TestConversions(unittest.TestCase):
     def test_text(self):
         node = TextNode("This is a text node", TextType.text)
         html_node = Conversions.text_node_to_html_node(node)
