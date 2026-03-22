@@ -1,5 +1,6 @@
 from textnode import *
 from htmlnode import *
+from conversions import *
 from enum import Enum
 
 import re
@@ -125,6 +126,18 @@ def block_to_block_type(block):
     else:
         return BlockType.paragraph
     
+def text_to_children(text):
+    nodes = [TextNode(text,TextType.text, None)]
+    nodes = split_nodes_delimiter(nodes, "**", TextType.bold)
+    nodes = split_nodes_delimiter(nodes, "_", TextType.italic)
+    nodes = split_nodes_delimiter(nodes, "`", TextType.code)
+    nodes = split_nodes_link(nodes)
+    nodes = split_nodes_image(nodes)
+    for node in nodes:
+        node = text_node_to_html_node(node)
+    
+
+
 def markdown_to_html_node(md):
     blocks = markdown_to_blocks(md)
     parent = ParentNode("div", [])
@@ -136,12 +149,12 @@ def markdown_to_html_node(md):
             case BlockType.code:
                 node = ParentNode("pre", [LeafNode("code", block[3:-3].strip())])
             case BlockType.quote:
-                node = ParentNode(blocktype.tag, [LeafNode(None, block.replace(">","").strip())])
+                node = ParentNode(blocktype.tag, text_to_children([LeafNode(None, block.replace(">","").strip())]))
             case BlockType.ulist:
                 node = ParentNode("ul", [ParentNode("li", [LeafNode(None, item[2:].strip())]) for item in block.split("\n")])
             case BlockType.olist:
                 node = ParentNode("ol", [ParentNode("li", [LeafNode(None, item[2:].strip())]) for item in block.split("\n")])
             case _:
-                node = LeafNode("p", block.strip())
+                node = LeafNode("p", " ".join(block.strip().split("\n")))
         parent.children.append(node)
     return parent
