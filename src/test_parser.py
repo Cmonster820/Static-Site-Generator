@@ -123,6 +123,22 @@ This is the same paragraph on a new line
         )
 
     
+    #I stole these from a github repo because I am lazy and this covers all
+    def test_block_to_block_type(self):
+        self.assertEqual(block_to_block_type("# Heading 1"), BlockType.heading1)
+        self.assertEqual(block_to_block_type("## Heading 2"), BlockType.heading2)
+        self.assertEqual(block_to_block_type("### Heading 3"), BlockType.heading3)
+        self.assertEqual(block_to_block_type("#### Heading 4"), BlockType.heading4)
+        self.assertEqual(block_to_block_type("##### Heading 5"), BlockType.heading5)
+        self.assertEqual(block_to_block_type("###### Heading 6"), BlockType.heading6)
+        self.assertEqual(block_to_block_type("```\ncode block\n```"), BlockType.code)
+        self.assertEqual(block_to_block_type("> quote line 1\n> quote line 2"), BlockType.quote)
+        self.assertEqual(block_to_block_type("* item 1\n* item 2"), BlockType.ulist)
+        self.assertEqual(block_to_block_type("- item 1\n- item 2"), BlockType.ulist)
+        self.assertEqual(block_to_block_type("1. item 1\n2. item 2"), BlockType.olist)
+        self.assertEqual(block_to_block_type("This is a normal paragraph."), BlockType.paragraph)
+
+    
 
 if __name__ == "__main__":
     unittest.main()

@@ -1,4 +1,5 @@
 from textnode import *
+from enum import Enum
 
 import re
 
@@ -79,3 +80,42 @@ def markdown_to_blocks(md):
     blocks = [block.strip() for block in blocks if block.strip()]
     return blocks
 
+class BlockType(Enum):
+    paragraph = "paragraph"
+    heading1 = "heading1"
+    heading2 = "heading2"
+    heading3 = "heading3"
+    heading4 = "heading4"
+    heading5 = "heading5"
+    heading6 = "heading6"
+    code = "code"
+    quote = "quote"
+    ulist = "unordered_list"
+    olist = "ordered_list"
+
+def block_to_block_type(block):
+    if len(block)<2:
+        return BlockType.paragraph
+    if block[0] == "#":
+        if block.startswith("# "):
+            return BlockType.heading1
+        elif block.startswith("## "):
+            return BlockType.heading2
+        elif block.startswith("### "):
+            return BlockType.heading3
+        elif block.startswith("#### "):
+            return BlockType.heading4
+        elif block.startswith("##### "):
+            return BlockType.heading5
+        elif block.startswith("###### "):
+            return BlockType.heading6
+    elif block[0:4] == "```\n" and block[-3:] == "```":
+        return BlockType.code
+    elif all(line.startswith(">") for line in block.split("\n")):
+        return BlockType.quote
+    elif all(line.startswith(("* ", "- ")) for line in block.split("\n")):
+        return BlockType.ulist
+    elif all(line.split(". ")[0].isdigit() and int(line.split(". ")[0]) == idx + 1 for idx, line in enumerate(block.split("\n"))):
+        return BlockType.olist
+    else:
+        return BlockType.paragraph
